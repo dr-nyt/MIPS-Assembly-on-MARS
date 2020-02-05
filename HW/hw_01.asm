@@ -22,27 +22,32 @@ main:
 	
 	move $s3, $zero		# x = 0
 	
+	# Setting Parameters
+	move $a0, $s0
+	move $a1, $s1
+	move $a2, $s2
+	
 	bgt $s0, $s1, greater	# if(i > j)
 	blt $s0, $s1, less	# if(i < j)
 	beq $s0, $s1, equal	# if(i == j)
 	
 greater:
-	sub $s3, $s0, $s1	# x = i - j
+	sub $a2, $a0, $a1	# x = i - j
 	j print
 	
 less:
-	add $s3, $s0, $s1	# x = i + j
+	add $a2, $a0, $a1	# x = i + j
 	j print
 
 equal:
-	mul $s3, $s0, $s1	# x = i * j
+	mul $a2, $a0, $a1	# x = i * j
 	j print
 	
 print:
 	la $a0, output
 	li $v0, 4
 	syscall
-	move $a0, $s3
+	move $a0, $a2
 	li $v0, 1
 	syscall			# print(x)
 	j exit
