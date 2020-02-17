@@ -250,15 +250,13 @@ add_ascii_numbers:
 	
 # ##### BEGIN STUDENT CODE BLOCK 1 #####
 	# s0 = The input array
-	# s1 = String array
+	# s1 = String
 	# s2 = Integer from string
 	# s3 = First int
 	# s4 = Second int
 	
 	# t0 = 10
-	# t1 = Int 1
-	# t2 = Int 2
-	# t3 = Temporary string byte holder
+	# t1 = string byte
 	
 	addi $sp, $sp, -16
 	sw $a0, 0($sp)
@@ -266,73 +264,42 @@ add_ascii_numbers:
 	la $s0, ($a0)
 	
 	addi $t0, $zero, 10
-	addi $s2, $zero, 0
+	addi $s3, $zero, 0
 	
-	# Get first string
-	lw $s1, 0($s0)
-	jal loop
-	# Store first int
-	move $t1, $s2
-	# Reset s2
-	addi $s2, $zero, 0
+	lw $s1, 0($s0)		# Get first string
+	lbu $t1, ($s1)       	# Load unsigned char from array into t1
+	lw $s2, 4($s0		# Get second string
+	lbu $t2, ($s1)       	# Load unsigned char from array into t2
+	jal lp
 	
-	# Get second string
-	lw $s1, 4($s0)
-	jal loop
-	# Store second int
-	move $t2, $s2
-	# Reset s2
-	addi $s2, $zero, 0
-	
-	addi $s4, $zero, 0	# Carry Over
-	
-	j SUM
+	j DONE
 	
 	
-	loop:         
-  		lbu $t3, ($s1)       # Load char from array into t3
-  		beq $t3, $0, FIN     # Stop if end of string
-  		addi $t3, $t3, -48   # Converts t1's ascii value to dec value
-  		mul $s2, $s2, $t0    # Sum *= 10
-  		add $s2, $s2, $t3    # Sum += array[s1]-'0'
-  		addi $s1, $s1, 1     # Increment array address
-  		j loop
+	lp:        
+  		beq $t1, $0, FIN     #NULL terminator found
+  		addi $t1, $t1, -48   #converts t1's ascii value to dec value 
+  		# mul $s2, $s2, $t0    #sum *= 10
+  		# add $s2, $s2, $t1    #sum += array[s1]-'0'
+  		# addi $s1, $s1, 1     #increment array address
+  		
+  		div $t1, $t0
+  		mflo $t1	# Quotient
+  		mfhi $t2	# Remainder
+  		
+  		li $v0, 1
+  		move $a0, $t2
+  		syscall
+  		
+  		j lp                 #jump to start of loop
 	FIN:
 		jr $ra
 		
-	SUM:
-		beq $t1, $0, RETURN
-		beq $t2, $0, RETURN
+	DONE:
+		addu $t0, $s3, $s4
 		
-		div $t1, $t0
-		mflo $t1
-		mfhi $s1
-		
-		div $t2, $t0
-		mflo $t2
-		mfhi $s2
-		
-		add $a0, $s1, $s2
-		add $a0, $a0, $s4
-		bge $a0, $t0, CARRY
-		li $v0, 1
-		syscall
-		
-		j SUM
-	
-	CARRY:
-		div $a0, $t0
-		mflo $s4
-		mfhi $a0
-		li $v0, 1
-		syscall
-		j SUM
-		
-	RETURN:
-		
-		#lw $a0, 0($sp)
-		#addi $sp, $sp, 16
-		#sb $t0, 16($s0)
+		lw $a0, 0($sp)
+		addi $sp, $sp, 16
+		sw $t0, 16($s0)
 
 # ###### END STUDENT CODE BLOCK 1 ######
 
