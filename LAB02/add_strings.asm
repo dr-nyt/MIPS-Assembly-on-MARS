@@ -309,7 +309,7 @@ add_ascii_numbers:
 		
 		lw $a0, 0($sp)
 		addi $sp, $sp, 16
-		sw $t0, 8($a0)
+		sw $t0, 16($s0)
 
 # ###### END STUDENT CODE BLOCK 1 ######
 
