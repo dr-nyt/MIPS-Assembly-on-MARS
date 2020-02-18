@@ -5,7 +5,7 @@
 #		performing arithmetic on the ASCII digits themselves.
 #
 #
-# Name:		Constant definitions
+# Name:		Shehryar Abdul Aziz, Mohammed Saleh
 #
 # Description:	These constants define values used for system calls,
 #		and some other miscellaneous values.
@@ -249,87 +249,75 @@ add_ascii_numbers:
 	sw 	$s0, 0($sp)
 	
 # ##### BEGIN STUDENT CODE BLOCK 1 #####
-	# s0 = The input array
-	# s1 = String array
-	# s2 = Integer from string
-	# s3 = First int
-	# s4 = Second int
-	
-	# t0 = 10
-	# t1 = Int 1
-	# t2 = Int 2
-	# t3 = Temporary string byte holder
-	
-	addi $sp, $sp, -16
-	sw $a0, 0($sp)
-	
 	la $s0, ($a0)
 	
-	addi $t0, $zero, 10
-	addi $s2, $zero, 0
+	addi $t0, $zero, 10	# A constant 10
+	addi $s2, $zero, 0	# Sum of two numbers to check for carry
 	
+	# Get integer length
+	lw $s3, 12($s0)
 	# Get first string
 	lw $s1, 0($s0)
-	jal loop
-	# Store first int
-	move $t1, $s2
-	# Reset s2
-	addi $s2, $zero, 0
-	
+	add $s1, $s1, $s3	# Set array to last element
 	# Get second string
-	lw $s1, 4($s0)
-	jal loop
-	# Store second int
-	move $t2, $s2
-	# Reset s2
-	addi $s2, $zero, 0
+	lw $s2, 4($s0)
+	add $s2, $s2, $s3	# Set array to last element
 	
-	addi $s4, $zero, 0	# Carry Over
+	addi $s4, $zero, 0	# Set Carry to 0
+	addi $s5, $zero, 0	# Reversed Answer
+	addi $s6, $zero, 0	# Correct Answer
 	
-	j SUM
+	loop:      
+		addi $s1, $s1, -1    	# Increment array address
+  		addi $s2, $s2, -1    	# Increment array address
+  		   
+  		lbu $t1, ($s1)      	# Load char from array
+  		lbu $t2, ($s2)      	# Load char from array into t3
+  		
+  		beq $t1, $0, REVERSE     	# Stop if end of string
+  		beq $t2, $0, REVERSE     	# Stop if end of string
+  		
+  		addi $t1, $t1, -48   	# Converts ascii value to dec value
+  		addi $t2, $t2, -48   	# Converts ascii value to dec value
+  		
+  		add $t3, $t1, $t2	# Add the two numbers	
+  		add $t3, $t3, $s4	# Add the carry if any
+  		addi $s4, $zero, 0	# Reset Carry to 0
+  		
+  		bge $t3, $t0, CARRY
+
+  		j GEN
+  		
+  	CARRY:
+  		div $t3, $t0
+		mflo $s4		# Set the carry
+		mfhi $t3		# Set the number
+		j GEN			
 	
-	
-	loop:         
-  		lbu $t3, ($s1)       # Load char from array into t3
-  		beq $t3, $0, FIN     # Stop if end of string
-  		addi $t3, $t3, -48   # Converts t1's ascii value to dec value
-  		mul $s2, $s2, $t0    # Sum *= 10
-  		add $s2, $s2, $t3    # Sum += array[s1]-'0'
-  		addi $s1, $s1, 1     # Increment array address
-  		j loop
-	FIN:
-		jr $ra
+	GEN:
+		mul $s5, $s5, $t0	# Reversed Ans = Reversed Ans * 10
+		add $s5, $s5, $t3	# Reversed Ans = Reversed Ans + Current Sum
 		
-	SUM:
-		beq $t1, $0, RETURN
-		beq $t2, $0, RETURN
+		j loop
+  	
+	REVERSE:
+		# Reverse Number
+		div $s5, $t0
+		mflo $s5		# Reversed answer without last number
+		mfhi $t1		# The last number
 		
-		div $t1, $t0
-		mflo $t1
-		mfhi $s1
+		mul $s6, $s6, $t0	# Ans = Ans * 10
+		add $s6, $s6, $t1	# Add the number to the end
 		
-		div $t2, $t0
-		mflo $t2
-		mfhi $s2
-		
-		add $a0, $s1, $s2
-		add $a0, $a0, $s4
-		bge $a0, $t0, CARRY
-		li $v0, 1
-		syscall
-		
-		j SUM
-	
-	CARRY:
-		div $a0, $t0
-		mflo $s4
-		mfhi $a0
-		li $v0, 1
-		syscall
-		j SUM
+		beq $s5, $0, RETURN
 		
 	RETURN:
+		li $v0, 1
+		move $a0, $s6
+		syscall
 		
+		li $v0, 10
+		syscall
 		#lw $a0, 0($sp)
 		#addi $sp, $sp, 16
 		#sb $t0, 16($s0)
